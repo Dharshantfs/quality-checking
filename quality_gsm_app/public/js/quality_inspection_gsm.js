@@ -7,7 +7,8 @@ frappe.ui.form.on("Quality Inspection", {
         recalc_all_sections(frm);
     },
     quality(frm) {
-        (frm.doc.gsm_sections || []).forEach((row) => {
+        const sectionsField = get_sections_field(frm);
+        (frm.doc[sectionsField] || []).forEach((row) => {
             if (!row.quality) {
                 frappe.model.set_value(row.doctype, row.name, "quality", frm.doc.quality || "");
             }
@@ -16,7 +17,8 @@ frappe.ui.form.on("Quality Inspection", {
     }
 });
 
-frappe.ui.form.on("GSM Test Section", {
+["GSM Test Section", "Quality Checking"].forEach((childDoctype) => {
+frappe.ui.form.on(childDoctype, {
     representative_gsm(frm, cdt, cdn) {
         recalc_section_and_parent(frm, cdt, cdn);
     },
@@ -24,22 +26,38 @@ frappe.ui.form.on("GSM Test Section", {
         recalc_section_and_parent(frm, cdt, cdn);
     }
 });
+});
 
 for (let i = 1; i <= 20; i++) {
-    frappe.ui.form.on("GSM Test Section", {
-        [`r1_s${i}`]: function (frm, cdt, cdn) {
-            recalc_section_and_parent(frm, cdt, cdn);
-        },
-        [`r2_s${i}`]: function (frm, cdt, cdn) {
-            recalc_section_and_parent(frm, cdt, cdn);
-        }
+    ["GSM Test Section", "Quality Checking"].forEach((childDoctype) => {
+        frappe.ui.form.on(childDoctype, {
+            [`r1_s${i}`]: function (frm, cdt, cdn) {
+                recalc_section_and_parent(frm, cdt, cdn);
+            },
+            [`r2_s${i}`]: function (frm, cdt, cdn) {
+                recalc_section_and_parent(frm, cdt, cdn);
+            }
+        });
     });
 }
 
-function add_load_gsm_button(frm) {
-    if (!frm.doc.shaft_production_run) return;
+function get_sections_field(frm) {
+    if (frm.fields_dict && frm.fields_dict.quality_checking_sections) return "quality_checking_sections";
+    if (frm.fields_dict && frm.fields_dict.gsm_sections) return "gsm_sections";
+    return null;
+}
 
-    frm.add_custom_button(__("Load GSM Sections"), () => {
+function safe_set_value(frm, fieldname, value) {
+    if (frm.fields_dict && frm.fields_dict[fieldname]) {
+        frm.set_value(fieldname, value);
+    }
+}
+
+function add_load_gsm_button(frm) {
+    const sectionsField = get_sections_field(frm);
+    if (!frm.doc.shaft_production_run || !sectionsField) return;
+
+    frm.add_custom_button(__("Load Quality Sections"), () => {
         frappe.call({
             method: "quality_gsm_app.api.quality.get_unique_gsm_values",
             args: {
@@ -52,33 +70,36 @@ function add_load_gsm_button(frm) {
                     return;
                 }
 
-                frm.clear_table("gsm_sections");
+                frm.clear_table(sectionsField);
                 values.forEach((gsm) => {
-                    const row = frm.add_child("gsm_sections");
+                    const row = frm.add_child(sectionsField);
                     row.representative_gsm = gsm;
                     row.quality = frm.doc.quality || "";
                 });
 
-                frm.refresh_field("gsm_sections");
+                frm.refresh_field(sectionsField);
                 recalc_all_sections(frm);
-                frappe.show_alert({ message: __("GSM sections loaded"), indicator: "green" });
+                frappe.show_alert({ message: __("Quality sections loaded"), indicator: "green" });
             }
         });
     });
 }
 
 function recalc_section_and_parent(frm, cdt, cdn) {
+    const sectionsField = get_sections_field(frm);
     const row = locals[cdt][cdn];
-    if (!row) return;
+    if (!row || !sectionsField) return;
     recalc_one_section(frm, row);
     recalc_parent_summary(frm);
-    frm.refresh_field("gsm_sections");
+    frm.refresh_field(sectionsField);
 }
 
 function recalc_all_sections(frm) {
-    (frm.doc.gsm_sections || []).forEach((row) => recalc_one_section(frm, row));
+    const sectionsField = get_sections_field(frm);
+    if (!sectionsField) return;
+    (frm.doc[sectionsField] || []).forEach((row) => recalc_one_section(frm, row));
     recalc_parent_summary(frm);
-    frm.refresh_field("gsm_sections");
+    frm.refresh_field(sectionsField);
 }
 
 function get_threshold(qualityText) {
@@ -134,7 +155,9 @@ function recalc_one_section(frm, row) {
 }
 
 function recalc_parent_summary(frm) {
-    const rows = frm.doc.gsm_sections || [];
+    const sectionsField = get_sections_field(frm);
+    if (!sectionsField) return;
+    const rows = frm.doc[sectionsField] || [];
     let passSections = 0;
     let failSections = 0;
 
@@ -143,9 +166,9 @@ function recalc_parent_summary(frm) {
         else if (r.section_result === "FAIL") failSections += 1;
     });
 
-    frm.set_value("gsm_total_sections", rows.length);
-    frm.set_value("gsm_pass_sections", passSections);
-    frm.set_value("gsm_fail_sections", failSections);
-    frm.set_value("gsm_overall_result", rows.length ? (failSections > 0 ? "FAIL" : "PASS") : "");
+    safe_set_value(frm, "gsm_total_sections", rows.length);
+    safe_set_value(frm, "gsm_pass_sections", passSections);
+    safe_set_value(frm, "gsm_fail_sections", failSections);
+    safe_set_value(frm, "gsm_overall_result", rows.length ? (failSections > 0 ? "FAIL" : "PASS") : "");
 }
 

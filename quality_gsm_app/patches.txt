@@ -1,2 +1,3 @@
 quality_gsm_app.patches.v1_0.create_gsm_quality_setup
+quality_gsm_app.patches.v1_1.ensure_quality_checking_schema
 
