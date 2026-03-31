@@ -10,3 +10,6 @@ doctype_js = {
     "Quality Checking": "public/js/quality_inspection_gsm.js",
 }
 
+after_install = "quality_gsm_app.install.after_install"
+after_migrate = "quality_gsm_app.install.after_migrate"
+
