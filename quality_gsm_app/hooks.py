@@ -6,6 +6,7 @@ app_email = "admin@example.com"
 app_license = "MIT"
 
 doctype_js = {
-    "Quality Inspection": "public/js/quality_inspection_gsm.js"
+    "Quality Inspection": "public/js/quality_inspection_gsm.js",
+    "Quality Checking": "public/js/quality_inspection_gsm.js",
 }
 

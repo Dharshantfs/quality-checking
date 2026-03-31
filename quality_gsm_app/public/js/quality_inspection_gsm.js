@@ -1,4 +1,5 @@
-frappe.ui.form.on("Quality Inspection", {
+["Quality Inspection", "Quality Checking"].forEach((parentDoctype) => {
+frappe.ui.form.on(parentDoctype, {
     refresh(frm) {
         add_load_gsm_button(frm);
         recalc_all_sections(frm);
@@ -16,8 +17,9 @@ frappe.ui.form.on("Quality Inspection", {
         recalc_all_sections(frm);
     }
 });
+});
 
-["GSM Test Section", "Quality Checking"].forEach((childDoctype) => {
+["GSM Test Section", "Quality Checking", "Quality Checking Section"].forEach((childDoctype) => {
 frappe.ui.form.on(childDoctype, {
     representative_gsm(frm, cdt, cdn) {
         recalc_section_and_parent(frm, cdt, cdn);
@@ -29,7 +31,7 @@ frappe.ui.form.on(childDoctype, {
 });
 
 for (let i = 1; i <= 20; i++) {
-    ["GSM Test Section", "Quality Checking"].forEach((childDoctype) => {
+    ["GSM Test Section", "Quality Checking", "Quality Checking Section"].forEach((childDoctype) => {
         frappe.ui.form.on(childDoctype, {
             [`r1_s${i}`]: function (frm, cdt, cdn) {
                 recalc_section_and_parent(frm, cdt, cdn);
@@ -42,6 +44,7 @@ for (let i = 1; i <= 20; i++) {
 }
 
 function get_sections_field(frm) {
+    if (frm.fields_dict && frm.fields_dict.sections) return "sections";
     if (frm.fields_dict && frm.fields_dict.quality_checking_sections) return "quality_checking_sections";
     if (frm.fields_dict && frm.fields_dict.gsm_sections) return "gsm_sections";
     return null;
