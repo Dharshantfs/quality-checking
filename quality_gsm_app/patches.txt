@@ -2,4 +2,5 @@ quality_gsm_app.patches.v1_0.create_gsm_quality_setup
 quality_gsm_app.patches.v1_1.ensure_quality_checking_schema
 quality_gsm_app.patches.v1_2.make_quality_checking_main_doctype
 quality_gsm_app.patches.v1_3.force_quality_checking_parent_fix
+quality_gsm_app.patches.v1_4.ensure_quality_checking_permissions
 
