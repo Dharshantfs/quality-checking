@@ -7,10 +7,12 @@ def _run_quality_checking_setup():
     from quality_gsm_app.patches.v2_0 import create_quality_checking_only
     from quality_gsm_app.patches.v1_3 import force_quality_checking_parent_fix
     from quality_gsm_app.patches.v1_4 import ensure_quality_checking_permissions
+    from quality_gsm_app.patches.v2_1 import update_gsm_report_layout
 
     create_quality_checking_only.execute()
     force_quality_checking_parent_fix.execute()
     ensure_quality_checking_permissions.execute()
+    update_gsm_report_layout.execute()
     frappe.db.commit()
 
 
