@@ -7,6 +7,7 @@ app_license = "MIT"
 
 doctype_js = {
     "Quality Checking": "public/js/quality_inspection_gsm.js",
+    "Shaft Production Run": "public/js/shaft_production_run_quality_button.js",
 }
 
 after_install = "quality_gsm_app.install.after_install"
